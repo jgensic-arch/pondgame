@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pond Fishing Lab</title>
+<style>
+:root{--bg:#f3f6f4;--card:#fff;--tx:#1b2a24;--mut:#5c6b64;--bd:#d5dfd9;--ac:#1f7a5a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131a17;--card:#1c2622;--tx:#e6efea;--mut:#9fb0a8;--bd:#33423b;--ac:#4cc79a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.4}
+.wrap{max-width:980px;margin:0 auto;padding:14px}
+h1{font-size:1.3rem;margin:0 0 10px}
+h2{font-size:.95rem;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+svg.scene{width:100%;height:auto;border-radius:10px;display:block}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+label{display:flex;justify-content:space-between;font-size:.85rem;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--ac)}
+.val{color:var(--ac)}
+.hint{font-size:.75rem;color:var(--mut);margin:0 0 8px}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:1rem;font-weight:700;cursor:pointer}
+button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd);font-size:.8rem;padding:6px 10px;font-weight:600}
+#msg{flex:1;min-width:200px;font-size:.95rem}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.bucket{border:2px solid var(--bd);border-top:none;border-radius:4px 4px 18px 18px;min-height:110px;padding:6px;background:linear-gradient(transparent,rgba(60,140,200,.12))}
+.bucket b{display:block;font-size:.85rem}
+.fishes{display:flex;flex-wrap:wrap;gap:1px;margin-top:4px}
+.pop{display:grid;grid-template-columns:80px 1fr 56px;gap:6px;align-items:center;font-size:.82rem;margin:4px 0}
+.pb{height:10px;border-radius:5px;background:var(--bd);overflow:hidden}
+.pb i{display:block;height:100%}
+@keyframes bl{50%{opacity:.15}}.led{animation:bl 1.2s infinite}
+.stat{font-size:.85rem;color:var(--mut)}
+.stat b{color:var(--tx)}
+</style></head><body><div class="wrap">
+<h1>🎣 Pond Fishing Lab</h1>
+<div class="card" style="padding:8px">
+<svg class="scene" id="scene" viewBox="0 0 800 320">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop id="s1" offset="0" stop-color="#4aa3e8"/><stop id="s2" offset="1" stop-color="#bfe3f7"/></linearGradient></defs>
+<rect width="800" height="320" fill="url(#sky)"/>
+<g id="stars"></g>
+<circle id="sun" r="22" fill="#ffd84a"/><circle id="moon" r="16" fill="#eef1ff"/>
+<path d="M0 170 Q120 120 260 160 T520 150 T800 160 V180 H0Z" id="hill" fill="#4f8a4c"/>
+<rect id="mud" x="0" y="172" width="800" height="148" fill="#6b5436"/>
+<g id="dc" style="display:none"><rect x="540" y="124" width="110" height="46" fill="#7d8790"/><rect x="660" y="106" width="100" height="64" fill="#6a747d"/><circle cx="570" cy="121" r="8" fill="#4a545c"/><circle cx="610" cy="121" r="8" fill="#4a545c"/><circle cx="700" cy="103" r="8" fill="#4a545c"/><circle cx="735" cy="103" r="8" fill="#4a545c"/><g id="dcw"></g><path d="M600 170V176H470" stroke="#3b4a55" stroke-width="5" fill="none"/><text x="650" y="98" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">DATA CENTER</text></g>
+<rect id="water" x="0" y="172" width="800" height="148" fill="#2c7fa8"/>
+<rect id="tint" x="0" y="172" width="800" height="148" fill="#6b7a2f" opacity="0"/>
+<g id="school"></g>
+<rect x="0" y="150" width="150" height="14" fill="#8a6038"/><rect x="20" y="164" width="8" height="40" fill="#6b4a2a"/><rect x="120" y="164" width="8" height="40" fill="#6b4a2a"/>
+<circle cx="70" cy="118" r="9" fill="#e7b78a"/><rect x="62" y="127" width="16" height="23" rx="4" fill="#c0392b"/>
+<line x1="78" y1="135" x2="190" y2="70" stroke="#5a3c1e" stroke-width="3"/>
+<line id="line" x1="190" y1="70" x2="330" y2="182" stroke="#fff" stroke-width="1" opacity=".8"/>
+<circle id="bob" cx="330" cy="182" r="6" fill="#e63946" stroke="#fff" stroke-width="2"/>
+<rect x="640" y="8" width="150" height="50" rx="10" fill="#000" opacity=".45"/>
+<text id="clock" x="715" y="32" text-anchor="middle" fill="#fff" font-size="22" font-weight="700" font-family="monospace">12:00</text>
+<text id="phase" x="715" y="50" text-anchor="middle" fill="#fff" font-size="11">Midday</text>
+</svg></div>
+
+<div class="card bar">
+<button id="cast">Cast line</button><div id="msg">Set the pond conditions, then cast your line.</div>
+</div>
+
+<div class="row">
+<div class="card"><h2>Pond conditions</h2>
+<label>Water temperature <span class="val" id="tv"></span></label><input type="range" id="temp" min="2" max="34" step="1" value="20">
+<label style="margin-top:8px">Dissolved oxygen <span class="val" id="dv"></span></label><input type="range" id="do" min="1" max="14" step=".5" value="8">
+<p class="hint">Warm water holds less oxygen — try pairing them realistically!</p></div>
+<div class="card"><h2>Fertilizer &amp; runoff pollution</h2>
+<label>Runoff level <span class="val" id="pv"></span></label><input type="range" id="pol" min="0" max="100" step="1" value="0">
+<p class="hint">Runoff adds nutrients and toxins. Sensitive species disappear first, lowering biodiversity.</p></div>
+<div class="card"><h2>Data center</h2>
+<button class="sec" id="dcbtn">🏢 Build data center</button>
+<p class="hint" id="dcnote" style="margin-top:8px">Data centers pump groundwater for cooling. Click to add one beside the pond.</p></div>
+<div class="card"><h2>Time of day</h2>
+<label>Hour <span class="val" id="hv"></span></label><input type="range" id="hour" min="0" max="24" step=".1" value="12">
+<label style="margin-top:6px;font-weight:400"><span><input type="checkbox" id="auto" checked> Run the clock (1 day ≈ 2 min)</span></label>
+<p class="hint">Bass and bluegill bite most at dawn and dusk; catfish prefer the night.</p></div>
+</div>
+
+<div class="card"><div class="bar" style="justify-content:space-between"><h2 style="margin:0">Buckets</h2><button class="sec" id="reset">Empty buckets</button></div>
+<div class="buckets" id="buckets" style="margin-top:8px"></div>
+<p class="stat" id="div1" style="margin:8px 0 0"></p></div>
+
+<div class="card"><h2>What’s in the pond right now? (share of fish population)</h2><div id="pop"></div>
+<p class="stat" id="div2"></p></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let dc=false,wl=0;
+const SP=[
+{k:'bluegill',n:'Bluegill',c:'#3f7fb5',b:'#f29a2e',tmin:8,lo:18,hi:28,tmax:34,dmin:3,sens:.5,note:'Hardy panfish'},
+{k:'bass',n:'Bass',c:'#4f7d3a',b:'#d9e3b5',tmin:10,lo:20,hi:27,tmax:33,dmin:4,sens:.65,note:'Needs moderate oxygen'},
+{k:'catfish',n:'Catfish',c:'#7c6d5f',b:'#c9bba9',tmin:12,lo:22,hi:30,tmax:36,dmin:2,sens:.25,note:'Tolerates low oxygen'},
+{k:'trout',n:'Trout',c:'#b05f86',b:'#f0c7d9',tmin:0,lo:6,hi:13,tmax:17,dmin:7,sens:.95,note:'Cold, oxygen-rich, clean water only'}];
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const mix=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));const A=p(a),B=p(b);return 'rgb('+A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')+')'};
+const fishSVG=(c,b,w=22)=>`<svg width="${w}" height="${w*.55}" viewBox="0 0 40 22"><path d="M2 11C8 1 22 1 30 11C22 21 8 21 2 11Z" fill="${c}"/><path d="M6 13C12 19 22 19 28 12C22 16 12 16 6 13Z" fill="${b}"/><path d="M29 11L39 3V19Z" fill="${c}"/><circle cx="9" cy="9" r="1.5" fill="#fff"/></svg>`;
+function temp(){return +$('temp').value}
+function weights(){
+  const T=temp()+(dc?3:0),D=+$('do').value-(dc?1.5:0),P=+$('pol').value/100,h=+$('hour').value;
+  const dusk=(h>=4.5&&h<=8)||(h>=16.5&&h<=20),night=h>=20||h<4.5;
+  return SP.map(s=>{
+    let tf=T<=s.tmin||T>=s.tmax?0:T<s.lo?(T-s.tmin)/(s.lo-s.tmin):T>s.hi?(s.tmax-T)/(s.tmax-s.hi):1;
+    let df=clamp((D-s.dmin)/2,0,1);
+    let pf=Math.max(0,1-s.sens*P*1.4)*(dc?Math.max(0,.38-.4*s.sens):1);
+    let act=s.k==='catfish'?(night?1.5:1):(s.k==='trout'?1:(dusk?1.4:1));
+    return {s,w:tf*df*pf,bite:tf*df*pf*act};
+  });
+}
+const counts={bluegill:0,bass:0,catfish:0,trout:0};let junk=0;
+function shannon(o){const t=Object.values(o).reduce((a,b)=>a+b,0);if(!t)return 0;return -Object.values(o).filter(v=>v>0).reduce((a,v)=>a+(v/t)*Math.log(v/t),0)}
+function renderBuckets(){
+  $('buckets').innerHTML=SP.map(s=>{const n=counts[s.k],show=Math.min(n,24);
+    return `<div class="bucket"><b>${s.n}: ${n}</b><div class="fishes">${fishSVG(s.c,s.b,24).repeat(show)}${n>24?'<small>+'+(n-24)+'</small>':''}</div></div>`}).join('');
+  const tot=Object.values(counts).reduce((a,b)=>a+b,0);
+  $('div1').innerHTML=`Total fish: <b>${tot}</b> · Species caught: <b>${Object.values(counts).filter(v=>v).length}</b> · Shannon diversity (H′) of your catch: <b>${shannon(counts).toFixed(2)}</b>${junk?' · Junk pulled out: <b>'+junk+'</b>':''}`;
+}
+function renderPop(){
+  const W=weights(),tot=W.reduce((a,x)=>a+x.w,0);
+  $('pop').innerHTML=W.map(x=>{const p=tot?x.w/tot*100:0;
+    return `<div class="pop"><span>${x.s.n}</span><div class="pb"><i style="width:${p}%;background:${x.s.c}"></i></div><span>${x.w===0?'absent':p.toFixed(0)+'%'}</span></div>`}).join('');
+  const o={};W.forEach(x=>o[x.s.k]=x.w);
+  const rich=W.filter(x=>x.w>0.02).length;
+  $('div2').innerHTML=`Species richness: <b>${rich} of 4</b> · Pond Shannon diversity (H′): <b>${shannon(o).toFixed(2)}</b> (max 1.39)` +(dc?' · <i>Data center is drawing down groundwater: lower water level, warmer water, less oxygen.</i>':'')+(W[3].w===0?' · <i>Trout absent: too warm, too little oxygen, or too polluted.</i>':'');
+  // school
+  const g=$('school');g.innerHTML='';fish=[];
+  if(!tot)return;
+  for(let i=0;i<9;i++){let r=Math.random()*tot,sp=W[0].s;for(const x of W){r-=x.w;if(r<=0){sp=x.s;break}}
+    const e=document.createElementNS('http://www.w3.org/2000/svg','g');e.innerHTML=fishSVG(sp.c,sp.b,36);
+    g.appendChild(e);fish.push({e,x:160+Math.random()*620,y:200+Math.random()*100,v:(Math.random()*.4+.2)*(Math.random()<.5?-1:1)});}
+}
+let fish=[];
+function updateLabels(){
+  $('tv').textContent=temp()+' °C ('+Math.round(temp()*9/5+32)+' °F)';$('dv').textContent=$('do').value+' mg/L';
+  $('pv').textContent=$('pol').value+'%';
+  $('dcnote').textContent=dc?`Groundwater is being drained, so the pond is shrinking. Effective water: ${temp()+3} °C, ${(+$('do').value-1.5).toFixed(1)} mg/L oxygen. Click again to remove it.`:'Data centers pump groundwater for cooling. Click to add one beside the pond.';$('tint').setAttribute('opacity',+$('pol').value/100*.55);
+  renderPop();
+}
+['temp','do','pol'].forEach(i=>$(i).addEventListener('input',updateLabels));
+$('hour').addEventListener('input',()=>{renderPop()});
+// stars
+$('stars').innerHTML=Array.from({length:40},()=>`<circle cx="${Math.random()*800}" cy="${Math.random()*150}" r="${Math.random()*1.2+.4}" fill="#fff"/>`).join('');
+function drawSky(){
+  const h=+$('hour').value,a=Math.PI*(h-6)/12,s=Math.sin(a);
+  const k=clamp((s+.15)/.45,0,1),dk=clamp(1-Math.abs(s)/.3,0,1);
+  let top=mix('#070b24','#4aa3e8',k),bot=mix('#1b2447','#bfe3f7',k);
+  $('s1').setAttribute('stop-color',top);
+  $('s2').setAttribute('stop-color',mixc(bot,'#f08a4b',dk*.8));
+  const sx=400-Math.cos(a)*360,sy=172-s*140,ma=a+Math.PI,mx=400-Math.cos(ma)*360,my=172-Math.sin(ma)*140;
+  $('sun').setAttribute('cx',sx);$('sun').setAttribute('cy',sy);$('moon').setAttribute('cx',mx);$('moon').setAttribute('cy',my);
+  $('stars').setAttribute('opacity',1-k);
+  $('hill').setAttribute('fill',mix('#1a2b22','#4f8a4c',k));
+  const pol=+$('pol').value/100;
+  $('water').setAttribute('fill',mix(mix('#0f2a3a','#2c7fa8',k),'#4a5a2a',pol*.3));
+  const H=Math.floor(h)%24,M=Math.floor((h%1)*60);
+  $('clock').textContent=String(H).padStart(2,'0')+':'+String(M).padStart(2,'0');
+  $('hv').textContent=$('clock').textContent;
+  $('phase').textContent=h<4.5||h>=20?'Night':h<8?'Dawn':h<16.5?'Daytime':'Dusk';
+}
+function mixc(rgb,hex,t){const A=rgb.match(/\d+/g).map(Number),B=[1,3,5].map(i=>parseInt(hex.substr(i,2),16));return 'rgb('+A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')+')'}
+// fishing
+let state='idle',tm1,tm2,bobY=182;
+const setMsg=t=>$('msg').innerHTML=t;
+$('cast').onclick=()=>{
+  if(state==='idle'){
+    state='wait';$('cast').textContent='Waiting…';$('cast').disabled=true;setMsg('Line is in the water… be patient.');
+    const W=weights(),act=W.reduce((a,x)=>a+x.bite,0);
+    const wait=(2000+Math.random()*3000)/(0.25+Math.min(1,act/1.2));
+    tm1=setTimeout(()=>{state='bite';$('cast').disabled=false;$('cast').textContent='REEL IN!';setMsg('<b>Bite!</b> Reel in now!');
+      tm2=setTimeout(()=>{state='idle';$('cast').textContent='Cast line';setMsg('Too slow — it got away. Cast again.')},1600)},wait);
+  }else if(state==='bite'){clearTimeout(tm2);reel()}
+};
+function reel(){
+  state='idle';$('cast').textContent='Cast line';
+  const W=weights(),P=+$('pol').value/100;
+  const jw=0.12+P*2.2+(dc?1.2:0),tot=W.reduce((a,x)=>a+x.bite,0)+jw;let r=Math.random()*tot;
+  for(const x of W){r-=x.bite;if(r<=0){const len=Math.round(12+Math.random()*25);counts[x.s.k]++;renderBuckets();
+    setMsg(`You caught a <b>${x.s.n}</b> (${len} cm)! ${x.s.note}.`);return}}
+  junk++;renderBuckets();
+  setMsg(P>.4?'You pulled up a clump of algae and trash. Pollution is crowding out the fish.':'Just a tangle of weeds this time.');
+}
+$('reset').onclick=()=>{for(const k in counts)counts[k]=0;junk=0;renderBuckets()};
+// loop
+let last=performance.now(),t0=0;
+function loop(now){
+  const dt=(now-last)/1000;last=now;t0+=dt;
+  if($('auto').checked){let h=(+$('hour').value+dt*24/120)%24;$('hour').value=h;}
+  drawSky();
+  fish.forEach(f=>{f.x+=f.v;if(f.x<160||f.x>770)f.v*=-1;f.e.setAttribute('transform',`translate(${f.x},${Math.max(f.y,205+wl)+Math.sin(t0*2+f.x/40)*3}) scale(${f.v<0?1:-1},1) translate(${f.v<0?0:-36},0)`)});
+  wl+=((dc?26:0)-wl)*.04;$('water').setAttribute('y',172+wl);$('water').setAttribute('height',148-wl);$('tint').setAttribute('y',172+wl);$('tint').setAttribute('height',148-wl);
+  let target=182+wl;if(state==='wait')target+=Math.sin(t0*3)*1.5;if(state==='bite')target+=8+Math.sin(t0*25)*4;
+  bobY+=(target-bobY)*.3;$('bob').setAttribute('cy',bobY);$('line').setAttribute('y2',bobY);
+  requestAnimationFrame(loop);
+}
+$('dcw').innerHTML=[0,1,2].map(i=>[0,1].map(j=>`<rect x="${550+i*32}" y="${134+j*16}" width="20" height="8" fill="#cfe8ff"/><rect class="led" style="animation-delay:${(i+j)*.3}s" x="${700+i*18}" y="${118+j*16}" width="8" height="8" fill="#5cff8a"/>`).join('')).join('');
+$('dcbtn').onclick=()=>{dc=!dc;$('dc').style.display=dc?'block':'none';$('dcbtn').textContent=dc?'🏢 Remove data center':'🏢 Build data center';setMsg(dc?'A data center moved in and is pumping groundwater. Watch the pond level and the fish.':'The data center is gone. Groundwater is recovering.');updateLabels()};
+updateLabels();renderBuckets();requestAnimationFrame(loop);
+</script></body></html>
